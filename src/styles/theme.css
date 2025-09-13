@@ -1,0 +1,170 @@
+/* QuizForge Modern Dark Theme Variables & Utilities */
+:root {
+  --bg: #0b0b0b;
+  --text: #e7eaf0;
+  --muted: #9aa3af;
+  --panel: rgba(255,255,255,0.05);
+  --panel-strong: rgba(255,255,255,0.08);
+  --border: rgba(255,255,255,0.10);
+  --accent: #22d3ee;
+  --accent-2: #a78bfa;
+  --danger: #f43f5e;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  position: relative;
+  /* Subtle radial glows */
+  background-image:
+    radial-gradient(ellipse 40% 30% at 20% 10%, rgba(34,211,238,0.12), transparent),
+    radial-gradient(ellipse 30% 20% at 80% 80%, rgba(244,63,94,0.10), transparent);
+  background-attachment: fixed;
+}
+
+.container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 2rem 1rem;
+}
+
+.panel {
+  background: var(--panel);
+  border-radius: 1.2rem;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 4px 32px 0 rgba(0,0,0,0.18), 0 1.5px 8px 0 rgba(80,80,120,0.08);
+  backdrop-filter: blur(16px) saturate(1.2);
+  -webkit-backdrop-filter: blur(16px) saturate(1.2);
+  padding: 2rem;
+  margin-bottom: 2rem;
+  transition: box-shadow 0.2s, border 0.2s;
+}
+
+.card {
+  background: var(--panel-strong);
+  border-radius: 1rem;
+  border: 1.5px solid var(--border);
+  box-shadow: 0 2px 12px 0 rgba(0,0,0,0.10);
+  padding: 1.5rem;
+  transition: transform 0.15s, box-shadow 0.15s;
+  cursor: pointer;
+  text-align: left;
+}
+.card:hover, .card:focus {
+  transform: translateY(-4px) scale(1.025);
+  box-shadow: 0 6px 24px 0 rgba(34,211,238,0.10), 0 2px 8px 0 rgba(80,80,120,0.10);
+  outline: none;
+}
+
+.row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.5rem;
+}
+.spacer {
+  height: 2rem;
+}
+
+.btn {
+  display: inline-block;
+  font-weight: 600;
+  border-radius: 0.7rem;
+  border: 1.5px solid var(--border);
+  background: var(--panel-strong);
+  color: var(--text);
+  padding: 0.7em 1.5em;
+  margin: 0.2em 0.5em 0.2em 0;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.15s, border 0.15s, color 0.15s, box-shadow 0.15s;
+  box-shadow: 0 1px 4px 0 rgba(0,0,0,0.10);
+  outline: none;
+}
+.btn.primary {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  color: #181c24;
+  border: none;
+  box-shadow: 0 2px 8px 0 rgba(34,211,238,0.10);
+}
+.btn.ghost {
+  background: transparent;
+  color: var(--accent);
+  border: 1.5px solid var(--accent);
+}
+.btn:focus {
+  box-shadow: 0 0 0 3px var(--accent-2), 0 1px 4px 0 rgba(0,0,0,0.10);
+}
+
+.input {
+  border-radius: 0.7rem;
+  border: 1.5px solid var(--border);
+  background: var(--panel-strong);
+  color: var(--text);
+  padding: 0.7em 1em;
+  font-size: 1.1rem;
+  margin: 0.2em 0;
+  outline: none;
+  transition: border 0.15s, box-shadow 0.15s;
+}
+.input:focus {
+  border: 1.5px solid var(--accent);
+  box-shadow: 0 0 0 2px var(--accent-2);
+}
+
+.badge {
+  display: inline-block;
+  background: var(--accent-2);
+  color: #181c24;
+  border-radius: 0.6em;
+  padding: 0.2em 0.7em;
+  font-size: 0.95em;
+  font-weight: 600;
+  margin-right: 0.5em;
+}
+.kbd {
+  display: inline-block;
+  background: var(--panel-strong);
+  border-radius: 0.4em;
+  border: 1.5px solid var(--border);
+  padding: 0.1em 0.5em;
+  font-size: 1em;
+  font-family: 'JetBrains Mono', 'Fira Mono', 'Menlo', monospace;
+  color: var(--muted);
+  margin: 0 0.2em;
+}
+.lead {
+  font-size: 1.3rem;
+  color: var(--muted);
+  margin-bottom: 1.2rem;
+}
+.gradient-text {
+  background: linear-gradient(90deg, var(--accent), var(--accent-2));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  text-fill-color: transparent;
+}
+
+/* Focus ring for accessibility */
+:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 3px var(--accent-2), 0 1px 4px 0 rgba(0,0,0,0.10);
+}
+
+/* High contrast mode */
+.hc .panel, .hc .card {
+  background: rgba(255,255,255,0.13) !important;
+  border-color: rgba(255,255,255,0.25) !important;
+}
+.hc .btn, .hc .input, .hc .kbd {
+  border-color: var(--accent-2) !important;
+}
+.hc .badge {
+  background: var(--danger) !important;
+  color: #fff !important;
+}
+.hc .gradient-text {
+  background: linear-gradient(90deg, var(--danger), var(--accent));
+}

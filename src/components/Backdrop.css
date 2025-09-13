@@ -1,0 +1,239 @@
+/* Animated Background Layer */
+.backdrop-layer {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* Route-based color palettes using CSS custom properties */
+.backdrop-layer[data-mode="home"] {
+  --primary: 6 182 212;    /* cyan-500 */
+  --secondary: 244 114 182; /* rose-400 */
+  --accent: 139 92 246;    /* violet-500 */
+}
+
+.backdrop-layer[data-mode="build"] {
+  --primary: 6 182 212;    /* cyan-500 */
+  --secondary: 139 92 246; /* violet-500 */
+  --accent: 20 184 166;    /* teal-500 */
+}
+
+.backdrop-layer[data-mode="study"] {
+  --primary: 16 185 129;   /* emerald-500 */
+  --secondary: 6 182 212;  /* cyan-500 */
+  --accent: 132 204 22;    /* lime-500 */
+}
+
+.backdrop-layer[data-mode="exam"] {
+  --primary: 245 158 11;   /* amber-500 */
+  --secondary: 244 114 182; /* rose-400 */
+  --accent: 6 182 212;     /* cyan-500 */
+}
+
+.backdrop-layer[data-mode="library"] {
+  --primary: 99 102 241;   /* indigo-500 */
+  --secondary: 6 182 212;  /* cyan-500 */
+  --accent: 139 92 246;    /* violet-500 */
+}
+
+.backdrop-layer[data-mode="results"] {
+  --primary: 139 92 246;   /* violet-500 */
+  --secondary: 99 102 241; /* indigo-500 */
+  --accent: 6 182 212;     /* cyan-500 */
+}
+
+.backdrop-layer[data-mode="about"] {
+  --primary: 107 114 128;  /* gray-500 */
+  --secondary: 100 116 139; /* slate-500 */
+  --accent: 6 182 212;     /* cyan-500 */
+}
+
+/* SVG Wave Animations */
+.wave-path {
+  animation: wave-flow 20s ease-in-out infinite;
+  will-change: transform;
+}
+
+.wave-1 {
+  animation-duration: 25s;
+  animation-delay: 0s;
+}
+
+.wave-2 {
+  animation-duration: 30s;
+  animation-delay: -5s;
+}
+
+.wave-3 {
+  animation-duration: 35s;
+  animation-delay: -10s;
+}
+
+@keyframes wave-flow {
+  0%, 100% { 
+    transform: translateX(0) translateY(0) scale(1);
+    opacity: 0.15;
+  }
+  25% { 
+    transform: translateX(10px) translateY(-5px) scale(1.02);
+    opacity: 0.2;
+  }
+  50% { 
+    transform: translateX(-5px) translateY(8px) scale(0.98);
+    opacity: 0.18;
+  }
+  75% { 
+    transform: translateX(8px) translateY(-3px) scale(1.01);
+    opacity: 0.22;
+  }
+}
+
+/* Connecting Lines Animation */
+.connecting-line {
+  stroke-dasharray: 1000;
+  stroke-dashoffset: 1000;
+  animation: line-draw 15s ease-in-out infinite;
+  will-change: stroke-dashoffset;
+}
+
+.line-1 {
+  animation-duration: 18s;
+  animation-delay: 0s;
+}
+
+.line-2 {
+  animation-duration: 22s;
+  animation-delay: -3s;
+}
+
+.line-3 {
+  animation-duration: 20s;
+  animation-delay: -6s;
+}
+
+@keyframes line-draw {
+  0% { 
+    stroke-dashoffset: 1000;
+    opacity: 0;
+  }
+  10% { 
+    opacity: 0.4;
+  }
+  90% { 
+    stroke-dashoffset: 0;
+    opacity: 0.4;
+  }
+  100% { 
+    stroke-dashoffset: 0;
+    opacity: 0;
+  }
+}
+
+/* Flowing Dots Animation */
+.flowing-dot {
+  animation: dot-flow 12s ease-in-out infinite;
+  will-change: transform, opacity;
+}
+
+.dot-1 {
+  animation-duration: 15s;
+  animation-delay: 0s;
+}
+
+.dot-2 {
+  animation-duration: 18s;
+  animation-delay: -2s;
+}
+
+.dot-3 {
+  animation-duration: 14s;
+  animation-delay: -4s;
+}
+
+.dot-4 {
+  animation-duration: 16s;
+  animation-delay: -6s;
+}
+
+.dot-5 {
+  animation-duration: 20s;
+  animation-delay: -8s;
+}
+
+@keyframes dot-flow {
+  0%, 100% { 
+    transform: translate(0, 0) scale(1);
+    opacity: 0.6;
+  }
+  25% { 
+    transform: translate(15px, -10px) scale(1.2);
+    opacity: 0.8;
+  }
+  50% { 
+    transform: translate(-10px, 20px) scale(0.8);
+    opacity: 0.4;
+  }
+  75% { 
+    transform: translate(20px, -5px) scale(1.1);
+    opacity: 0.7;
+  }
+}
+
+/* High contrast mode adjustments */
+.hc .wave-path {
+  opacity: 0.05 !important;
+}
+
+.hc .connecting-line {
+  opacity: 0.02 !important;
+}
+
+.hc .flowing-dot {
+  opacity: 0.03 !important;
+}
+
+/* Background toggle support */
+.bg-off .wave-path,
+.bg-off .connecting-line,
+.bg-off .flowing-dot {
+  animation: none !important;
+}
+
+.bg-off .wave-path {
+  opacity: 0.02 !important;
+}
+
+.bg-off .connecting-line {
+  opacity: 0.01 !important;
+}
+
+.bg-off .flowing-dot {
+  opacity: 0.01 !important;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .wave-path,
+  .connecting-line,
+  .flowing-dot {
+    animation: none !important;
+  }
+  
+  .wave-path {
+    opacity: 0.05 !important;
+  }
+  
+  .connecting-line {
+    opacity: 0.03 !important;
+  }
+  
+  .flowing-dot {
+    opacity: 0.03 !important;
+  }
+}

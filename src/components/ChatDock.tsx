@@ -201,3 +201,4 @@ export default function ChatDock({ mode, onClose, initialMessage, onInsertItems 
     </>
   );
 }
+

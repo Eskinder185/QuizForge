@@ -6,8 +6,6 @@ import { analyzePerformance, buildMicroDrill } from "../utils/analytics";
 import PageHeader from "../components/PageHeader";
 import Empty from "../components/Empty";
 import ExamSetup from "../components/ExamSetup";
-import ExamRunner from "../components/ExamRunner";
-import ExamReview from "../components/ExamReview";
 import type { ExamAttempt } from "../types/quiz";
 
 type ExamMode = "setup" | "running" | "review" | "results";
@@ -129,29 +127,41 @@ export default function Exam() {
       <PageHeader title="Exam" subtitle="Realistic exam simulator with timers, flags, and review." />
 
       {/* Privacy Badge */}
-      <div className="panel" style={{ 
-        background: "rgba(16, 185, 129, 0.1)", 
-        border: "1px solid rgba(16, 185, 129, 0.3)",
-        marginBottom: "16px"
+      <div style={{ 
+        background: "transparent", 
+        border: "0",
+        padding: "0",
+        marginBottom: "var(--space-md)",
+        color: "var(--muted)",
+        fontSize: "var(--font-size-sm)"
       }}>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+        <div style={{ 
+          display: "flex", 
+          alignItems: "center", 
+          justifyContent: "space-between",
+          flexWrap: "wrap",
+          gap: "var(--space-xs)"
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", flex: "1", minWidth: "200px" }}>
             <div style={{ 
-              width: "8px", 
-              height: "8px", 
+              width: "6px", 
+              height: "6px", 
               background: "var(--success)", 
-              borderRadius: "50%" 
+              borderRadius: "50%",
+              flexShrink: 0
             }}></div>
-            <span style={{ fontSize: "14px", color: "var(--success)" }}>
+            <span>
               Privacy-first: no webcam, no mic, local-only
             </span>
           </div>
           <a 
             href="/about#privacy" 
             style={{ 
-              fontSize: "12px", 
-              color: "var(--success)", 
-              textDecoration: "underline" 
+              fontSize: "var(--font-size-xs)", 
+              color: "var(--accent)", 
+              textDecoration: "underline",
+              whiteSpace: "nowrap",
+              flexShrink: 0
             }}
             aria-label="Learn more about privacy"
           >
@@ -165,17 +175,29 @@ export default function Exam() {
       )}
 
       {mode === "running" && currentAttempt && (
-        <ExamRunner 
-          attempt={currentAttempt} 
-          onFinish={handleFinishExam} 
-        />
+        <div className="panel">
+          <h3>Exam Running</h3>
+          <p>Exam functionality is temporarily unavailable. The ExamRunner component has been removed.</p>
+          <button 
+            className="btn btn-primary" 
+            onClick={() => handleFinishExam(true)}
+          >
+            Finish Exam
+          </button>
+        </div>
       )}
 
       {mode === "review" && currentAttempt && (
-        <ExamReview 
-          attempt={currentAttempt} 
-          onClose={handleCloseReview} 
-        />
+        <div className="panel">
+          <h3>Exam Review</h3>
+          <p>Review functionality is temporarily unavailable. The ExamReview component has been removed.</p>
+          <button 
+            className="btn btn-primary" 
+            onClick={handleCloseReview}
+          >
+            Close Review
+          </button>
+        </div>
       )}
     </div>
   );

@@ -45,14 +45,22 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
     (customMode ? customQuestions > 0 && customMinutes > 0 : selectedPreset);
 
   return (
-    <div className="card" style={{ maxWidth: "600px", margin: "0 auto" }}>
-      <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: 600, marginBottom: "24px" }}>
+    <div className="card" style={{ 
+      maxWidth: "600px", 
+      margin: "0 auto"
+    }}>
+      <h2 style={{ 
+        fontSize: "var(--font-size-xl)", 
+        fontWeight: 600, 
+        marginBottom: "var(--space-lg)",
+        textAlign: "center"
+      }}>
         Exam Setup
       </h2>
 
       {/* Quiz Selection */}
-      <div style={{ marginBottom: "20px" }}>
-        <label className="lead" style={{ display: "block", marginBottom: "8px" }}>
+      <div style={{ marginBottom: "var(--space-lg)" }}>
+        <label className="lead" style={{ display: "block", marginBottom: "var(--space-xs)" }}>
           Select Quiz
         </label>
         <select
@@ -80,20 +88,49 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
         <label className="lead" style={{ display: "block", marginBottom: "8px" }}>
           Exam Format
         </label>
-        <div style={{ display: "flex", gap: "12px", marginBottom: "12px" }}>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+        <div style={{ 
+          display: "flex", 
+          gap: "var(--space-sm)", 
+          marginBottom: "var(--space-sm)",
+          flexWrap: "wrap"
+        }}>
+          <label style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "var(--space-xs)", 
+            cursor: "pointer",
+            padding: "var(--pad-1) var(--pad-2)",
+            borderRadius: "var(--radius-sm)",
+            background: !customMode ? "var(--surface-1)" : "transparent",
+            border: !customMode ? "1px solid var(--border-mid)" : "1px solid transparent",
+            transition: "all var(--transition-fast)",
+            minHeight: "32px"
+          }}>
             <input
               type="radio"
               checked={!customMode}
               onChange={() => setCustomMode(false)}
+              style={{ margin: 0 }}
             />
             Use Preset
           </label>
-          <label style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+          <label style={{ 
+            display: "flex", 
+            alignItems: "center", 
+            gap: "var(--space-xs)", 
+            cursor: "pointer",
+            padding: "var(--pad-1) var(--pad-2)",
+            borderRadius: "var(--radius-sm)",
+            background: customMode ? "var(--surface-1)" : "transparent",
+            border: customMode ? "1px solid var(--border-mid)" : "1px solid transparent",
+            transition: "all var(--transition-fast)",
+            minHeight: "32px"
+          }}>
             <input
               type="radio"
               checked={customMode}
               onChange={() => setCustomMode(true)}
+              style={{ margin: 0 }}
             />
             Custom
           </label>
@@ -114,7 +151,11 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
             ))}
           </select>
         ) : (
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "12px" }}>
+          <div style={{ 
+            display: "grid", 
+            gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", 
+            gap: "12px" 
+          }}>
             <div>
               <label className="lead" style={{ display: "block", marginBottom: "4px" }}>
                 Questions
@@ -126,6 +167,7 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
                 value={customQuestions}
                 onChange={(e) => setCustomQuestions(parseInt(e.target.value) || 1)}
                 className="input"
+                style={{ minHeight: "44px" }}
               />
             </div>
             <div>
@@ -139,6 +181,7 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
                 value={customMinutes}
                 onChange={(e) => setCustomMinutes(parseInt(e.target.value) || 1)}
                 className="input"
+                style={{ minHeight: "44px" }}
               />
             </div>
           </div>
@@ -150,15 +193,31 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
         <label className="lead" style={{ display: "block", marginBottom: "12px" }}>
           Options
         </label>
-        <div style={{ display: "grid", gap: "8px" }}>
+        <div style={{ display: "grid", gap: "var(--space-xs)" }}>
           {Object.entries(options).map(([key, value]) => (
-            <label key={key} style={{ display: "flex", alignItems: "center", gap: "8px", cursor: "pointer" }}>
+            <label key={key} style={{ 
+              display: "flex", 
+              alignItems: "center", 
+              gap: "var(--space-sm)", 
+              cursor: "pointer",
+              padding: "var(--pad-1) var(--pad-2)",
+              borderRadius: "var(--radius-sm)",
+              background: "var(--surface-0)",
+              border: "1px solid var(--border-weak)",
+              transition: "all var(--transition-fast)",
+              minHeight: "32px"
+            }}>
               <input
                 type="checkbox"
                 checked={value}
                 onChange={(e) => setOptions(prev => ({ ...prev, [key]: e.target.checked }))}
+                style={{ margin: 0 }}
               />
-              <span style={{ textTransform: "capitalize" }}>
+              <span style={{ 
+                textTransform: "capitalize",
+                fontSize: "var(--font-size-sm)",
+                lineHeight: "1.4"
+              }}>
                 {key.replace(/([A-Z])/g, ' $1').trim()}
               </span>
             </label>
@@ -167,20 +226,24 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
       </div>
 
       {/* Start Button */}
-      <div style={{ display: "flex", gap: "12px", justifyContent: "flex-end" }}>
+      <div style={{ 
+        display: "flex", 
+        gap: "var(--space-sm)", 
+        justifyContent: "stretch",
+        flexDirection: "column"
+      }}>
+        <button
+          onClick={handleStart}
+          disabled={!canStart}
+          className="btn primary lg"
+        >
+          Start Exam
+        </button>
         <button
           onClick={() => navigate("/")}
           className="btn ghost"
         >
           Cancel
-        </button>
-        <button
-          onClick={handleStart}
-          disabled={!canStart}
-          className="btn primary"
-          style={{ fontSize: "var(--font-size-lg)", padding: "12px 24px" }}
-        >
-          Start Exam
         </button>
       </div>
 
@@ -204,3 +267,4 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
     </div>
   );
 }
+

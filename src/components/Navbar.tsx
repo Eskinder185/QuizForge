@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { NavLink } from "react-router-dom";
 import { useApp } from "../store/app";
+import NeonToggle from "./NeonToggle";
 
 const GITHUB_URL = "https://github.com/Eskinder185/FactForge";
 
@@ -79,66 +80,70 @@ const Navbar: React.FC = () => {
         position: "sticky", 
         top: 0, 
         zIndex: 50,
-        padding: "16px 24px", 
+        padding: "var(--pad-2) var(--pad-3)", 
         display: "flex", 
         alignItems: "center", 
-        gap: "24px", 
+        gap: "var(--space-lg)", 
         justifyContent: "space-between",
-        marginBottom: "20px",
+        marginBottom: "var(--space-lg)",
         backdropFilter: "blur(20px)",
-        background: "rgba(255, 255, 255, 0.08)"
+        background: "var(--surface-1)",
+        border: "1px solid var(--border-weak)",
+        borderRadius: "var(--radius-lg)"
       }}
     >
-      <nav style={{ display: "flex", alignItems: "center", gap: "8px" }}>
+      <nav style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", flexWrap: "wrap" }}>
         <NavLink 
           to="/" 
-          className={({ isActive }) => isActive ? "btn primary" : "btn ghost"} 
+          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
           end
         >
           Home
         </NavLink>
         <NavLink 
           to="/build" 
-          className={({ isActive }) => isActive ? "btn primary" : "btn ghost"}
+          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
         >
           Build
         </NavLink>
         <NavLink 
           to="/study" 
-          className={({ isActive }) => isActive ? "btn primary" : "btn ghost"}
+          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
         >
           Study
         </NavLink>
         <NavLink 
           to="/exam" 
-          className={({ isActive }) => isActive ? "btn primary" : "btn ghost"}
+          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
         >
           Exam
         </NavLink>
         <NavLink 
           to="/results" 
-          className={({ isActive }) => isActive ? "btn primary" : "btn ghost"}
+          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
         >
           Results
         </NavLink>
         <NavLink 
           to="/about" 
-          className={({ isActive }) => isActive ? "btn primary" : "btn ghost"}
+          className={({ isActive }) => `nav-tab ${isActive ? "active" : ""}`}
         >
           About
         </NavLink>
       </nav>
       
-      <div style={{ display: "flex", alignItems: "center", gap: "16px" }}>
-        <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", cursor: "pointer" }}>
+      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)", flexWrap: "wrap" }}>
+        <NeonToggle />
+        
+        <label style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", fontSize: "var(--font-size-xs)", cursor: "pointer" }}>
           <input
             type="checkbox"
             checked={bgOn}
             onChange={e => setBgOn(e.target.checked)}
             style={{ 
               accentColor: "var(--accent)", 
-              width: "16px", 
-              height: "16px",
+              width: "14px", 
+              height: "14px",
               cursor: "pointer"
             }}
             aria-label="Toggle animated background"
@@ -146,15 +151,15 @@ const Navbar: React.FC = () => {
           Background
         </label>
         
-        <label style={{ display: "flex", alignItems: "center", gap: "8px", fontSize: "14px", cursor: "pointer" }}>
+        <label style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", fontSize: "var(--font-size-xs)", cursor: "pointer" }}>
           <input
             type="checkbox"
             checked={hc}
             onChange={e => setHc(e.target.checked)}
             style={{ 
               accentColor: "var(--accent)", 
-              width: "16px", 
-              height: "16px",
+              width: "14px", 
+              height: "14px",
               cursor: "pointer"
             }}
             aria-label="Toggle high contrast mode"
@@ -164,15 +169,13 @@ const Navbar: React.FC = () => {
         
         <button
           onClick={handleExport}
-          className="btn ghost"
-          style={{ fontSize: "12px" }}
+          className="btn ghost sm"
         >
           Export
         </button>
         <button
           onClick={handleImport}
-          className="btn ghost"
-          style={{ fontSize: "12px" }}
+          className="btn ghost sm"
         >
           Import
         </button>
@@ -187,8 +190,7 @@ const Navbar: React.FC = () => {
           href={GITHUB_URL}
           target="_blank"
           rel="noopener noreferrer"
-          className="btn ghost"
-          style={{ fontWeight: 600 }}
+          className="btn ghost sm"
         >
           GitHub
         </a>

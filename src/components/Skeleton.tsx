@@ -73,3 +73,4 @@ if (typeof document !== "undefined") {
   style.textContent = skeletonCSS;
   document.head.appendChild(style);
 }
+

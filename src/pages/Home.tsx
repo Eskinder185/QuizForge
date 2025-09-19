@@ -80,12 +80,11 @@ function FeatureCard({ title, body, to }: { title: string; body: string; to: str
       to={to} 
       className="card"
       style={{ 
-        display: "block", 
+        display: "flex", 
         textDecoration: "none", 
         color: "inherit",
         transition: "all 150ms ease",
         height: "100%",
-        display: "flex",
         flexDirection: "column"
       }}
     >

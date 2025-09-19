@@ -116,7 +116,7 @@ export default function Study() {
                   />
                 </div>
                 <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
-                  {Math.round(bin.accuracy * 100)}% ({bin.right}/{bin.total})
+                  {Math.round(bin.accuracy * 100)}% ({bin.count} attempts)
                 </div>
               </div>
             ))}

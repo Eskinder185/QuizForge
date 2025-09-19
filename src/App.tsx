@@ -2,7 +2,7 @@ import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Layout from "./components/Layout";
 import Navbar from "./components/Navbar";
-import Backdrop from "./components/Backdrop";
+// import Backdrop from "./components/Backdrop";
 import Home from "./pages/Home";
 import Build from "./pages/Build";
 import Study from "./pages/Study";
@@ -17,7 +17,7 @@ export default function App() {
     <AppProvider>
       <BrowserRouter basename={import.meta.env.BASE_URL}>
         <div className="app-shell">
-          <Backdrop />
+          {/* <Backdrop /> */}
           <Navbar />
           <Layout>
             <Routes>

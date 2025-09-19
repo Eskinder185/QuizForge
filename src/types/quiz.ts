@@ -1,6 +1,6 @@
 export type Choice = { id: string; text: string; correct?: boolean };
 
-export type QuestionType = "single" | "multi" | "truefalse" | "text" | "code";
+export type QuestionType = "single" | "multi" | "truefalse" | "text" | "code" | "short";
 
 export type Question = {
   id: string;

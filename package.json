@@ -3,11 +3,13 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://Eskinder185.github.io/QuizForge",
+  "homepage": "https://eskinder185.github.io/AstraFocusNexus",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "predeploy": "npm run build && cp dist/index.html dist/404.html",
+    "deploy": "gh-pages -d dist -b gh-pages"
   },
   "dependencies": {
     "react": "^18.3.1",
@@ -19,6 +21,7 @@
     "@types/react-dom": "^18.3.0",
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.20",
+    "gh-pages": "^6.3.0",
     "postcss": "^8.4.47",
     "shx": "^0.3.4",
     "tailwindcss": "^3.4.12",

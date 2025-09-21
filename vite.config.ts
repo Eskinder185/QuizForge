@@ -1,7 +1,10 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
 
+// CHANGE THIS to the exact repo name (case-sensitive)
+const repo = 'QuizForge' // 
+
 export default defineConfig({
-  base: '/QuizForge/',   // 👈 important for GitHub Pages
   plugins: [react()],
+  base: `/${repo}/`,
 })

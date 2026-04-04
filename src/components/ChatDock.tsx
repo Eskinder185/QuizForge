@@ -15,7 +15,7 @@ const SYSTEM_PROMPTS = {
 
 Follow the project style. Keep explanations concise. Prefer 30–60 word prompts when needed. Avoid ambiguous stems.`,
 
-  study: `You are a calm study coach. Use Socratic hints first, then short explanations with one key takeaway. If I paste a mistake summary, propose a 5-question micro-drill. Keep responses < 200 words unless I ask for more.`
+  study: `You are a calm study coach. Use Socratic hints first, then short explanations with one key takeaway. If I paste a mistake summary, propose a 5-question micro-drill. Keep responses < 200 words unless I ask for more.`,
 };
 
 export default function ChatDock({ mode, onClose, initialMessage, onInsertItems }: ChatDockProps) {
@@ -45,9 +45,10 @@ export default function ChatDock({ mode, onClose, initialMessage, onInsertItems 
     }
 
     const userMessage: ChatMessage = { role: "user", content: input.trim() };
-    const newMessages = messages.length === 0 
-      ? [{ role: "system" as const, content: SYSTEM_PROMPTS[mode] }, userMessage]
-      : [...messages, userMessage];
+    const newMessages =
+      messages.length === 0
+        ? [{ role: "system" as const, content: SYSTEM_PROMPTS[mode] }, userMessage]
+        : [...messages, userMessage];
 
     setMessages(newMessages);
     setInput("");
@@ -58,7 +59,6 @@ export default function ChatDock({ mode, onClose, initialMessage, onInsertItems 
       const assistantMessage: ChatMessage = { role: "assistant", content: response };
       setMessages([...newMessages, assistantMessage]);
 
-      // Try to parse items for build mode
       if (mode === "build") {
         const items = safeExtractItems(response);
         if (items) {
@@ -67,9 +67,9 @@ export default function ChatDock({ mode, onClose, initialMessage, onInsertItems 
       }
     } catch (error) {
       console.error("Chat error:", error);
-      const errorMessage: ChatMessage = { 
-        role: "assistant", 
-        content: `Error: ${error instanceof Error ? error.message : "Failed to get response"}` 
+      const errorMessage: ChatMessage = {
+        role: "assistant",
+        content: `Error: ${error instanceof Error ? error.message : "Failed to get response"}`,
       };
       setMessages([...newMessages, errorMessage]);
     } finally {
@@ -91,43 +91,36 @@ export default function ChatDock({ mode, onClose, initialMessage, onInsertItems 
     }
   };
 
+  const title = mode === "build" ? "Question assistant" : "Study coach";
+
   return (
     <>
-      <div className="fixed inset-0 bg-black/20 z-40" onClick={onClose} />
-      <div className="fixed right-0 top-0 bottom-0 w-full max-w-md bg-zinc-900 border-l border-zinc-700 z-50 flex flex-col">
-        <div className="flex items-center justify-between p-4 border-b border-zinc-700">
-          <h3 className="font-semibold">
-            {mode === "build" ? "✨ Question Assistant" : "🧠 Study Coach"}
-          </h3>
-          <button
-            onClick={onClose}
-            className="text-zinc-400 hover:text-zinc-200"
-            aria-label="Close chat"
-          >
-            ✕
+      <div className="chat-dock-overlay" onClick={onClose} aria-hidden />
+      <aside className="chat-dock" aria-label={title}>
+        <div className="chat-dock__header">
+          <h2 className="chat-dock__title">{title}</h2>
+          <button type="button" onClick={onClose} className="btn ghost sm" aria-label="Close chat">
+            Close
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4 space-y-4">
+        <div className="chat-dock__body">
           {messages.length === 0 && (
-            <div className="text-sm text-zinc-400">
-              {mode === "build" 
-                ? "Paste your notes or topic, and I'll generate high-quality questions for your quiz."
-                : "Ask me about study strategies, explain mistakes, or request practice questions."
-              }
-            </div>
+            <p className="chat-dock__empty">
+              {mode === "build"
+                ? "Paste your notes or topic, and I will generate questions for your quiz."
+                : "Ask about study strategies, mistakes, or practice ideas."}
+            </p>
           )}
 
           {messages.map((message, index) => (
             <div
               key={index}
-              className={`flex ${message.role === "user" ? "justify-end" : "justify-start"}`}
+              className={`chat-dock__row ${message.role === "user" ? "chat-dock__row--user" : "chat-dock__row--assistant"}`}
             >
               <div
-                className={`max-w-[80%] p-3 rounded-lg text-sm ${
-                  message.role === "user"
-                    ? "bg-blue-600 text-white"
-                    : "bg-zinc-800 text-zinc-100"
+                className={`chat-dock__bubble ${
+                  message.role === "user" ? "chat-dock__bubble--user" : "chat-dock__bubble--assistant"
                 }`}
               >
                 {message.content}
@@ -136,11 +129,9 @@ export default function ChatDock({ mode, onClose, initialMessage, onInsertItems 
           ))}
 
           {isLoading && (
-            <div className="flex justify-start">
-              <div className="bg-zinc-800 text-zinc-100 p-3 rounded-lg text-sm">
-                <div className="flex items-center space-x-2">
-                  <div className="animate-pulse">Thinking...</div>
-                </div>
+            <div className="chat-dock__row chat-dock__row--assistant">
+              <div className="chat-dock__bubble chat-dock__bubble--assistant">
+                <span className="text-muted">Thinking…</span>
               </div>
             </div>
           )}
@@ -149,56 +140,53 @@ export default function ChatDock({ mode, onClose, initialMessage, onInsertItems 
         </div>
 
         {parsedItems && mode === "build" && (
-          <div className="p-4 border-t border-zinc-700">
-            <div className="text-sm text-zinc-300 mb-2">
-              Found {parsedItems.length} questions. Select to insert:
-            </div>
-            <div className="space-y-2 max-h-32 overflow-y-auto">
+          <div className="chat-dock__parse-block">
+            <p className="chat-dock__parse-hint">
+              Found {parsedItems.length} question{parsedItems.length === 1 ? "" : "s"}. Review below, then insert.
+            </p>
+            <div style={{ maxHeight: "8rem", overflowY: "auto" }}>
               {parsedItems.map((item, index) => (
-                <div key={index} className="text-xs bg-zinc-800 p-2 rounded">
+                <div key={index} className="chat-dock__parse-item">
                   <div className="font-medium">{item.prompt}</div>
-                  <div className="text-zinc-400">
-                    {item.type} • {item.difficulty || "medium"} • {item.tags?.join(", ") || "no tags"}
+                  <div className="chat-dock__parse-meta">
+                    {item.type} · {item.difficulty || "medium"} · {item.tags?.join(", ") || "no tags"}
                   </div>
                 </div>
               ))}
             </div>
-            <button
-              onClick={handleInsertItems}
-              className="btn primary w-full mt-2"
-            >
-              Insert All Questions
+            <button type="button" onClick={handleInsertItems} className="btn primary w-full mt-2">
+              Insert all questions
             </button>
           </div>
         )}
 
-        <div className="p-4 border-t border-zinc-700">
-          <div className="flex gap-2">
+        <div className="chat-dock__footer">
+          <div className="chat-dock__footer-row">
             <textarea
               value={input}
               onChange={(e) => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={mode === "build" ? "Paste notes or describe topic..." : "Ask about study strategies..."}
+              placeholder={
+                mode === "build" ? "Paste notes or describe a topic…" : "Ask about study strategies…"
+              }
               className="input flex-1 resize-none"
               rows={2}
               disabled={isLoading}
+              aria-label="Message"
             />
             <button
+              type="button"
               onClick={handleSend}
               disabled={!input.trim() || isLoading}
-              className="btn primary self-end"
+              className="btn primary shrink-0"
             >
-              {isLoading ? "..." : "Send"}
+              {isLoading ? "…" : "Send"}
             </button>
           </div>
         </div>
-      </div>
+      </aside>
 
-      <AiKeyModal
-        isOpen={showKeyModal}
-        onClose={() => setShowKeyModal(false)}
-      />
+      <AiKeyModal isOpen={showKeyModal} onClose={() => setShowKeyModal(false)} />
     </>
   );
 }
-

@@ -21,36 +21,39 @@ export default function SourcesPanel({ quizId, questionId }: { quizId: string; q
   }
 
   return (
-    <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
+    <div className="sources-panel">
       <div className="flex items-center gap-2 mb-2">
         <div className="font-semibold">Sources</div>
-        {q && (
-          (()=>{
+        {q &&
+          (() => {
             const tf = computeTrustFactors(q, list);
             const s = trustScore(tf);
-            const color = s<50?"bg-red-500/20 text-red-300 border-red-500/30":s<80?"bg-amber-500/20 text-amber-300 border-amber-500/30":"bg-emerald-500/20 text-emerald-300 border-emerald-500/30";
-            return <span className={`text-xs px-2 py-1 rounded border ${color}`}>Trust {s}</span>;
-          })()
-        )}
+            const tier = s < 50 ? "trust-pill--low" : s < 80 ? "trust-pill--mid" : "trust-pill--high";
+            return (
+              <span className={`trust-pill ${tier}`} title="Heuristic trust score for attached sources">
+                Trust {s}
+              </span>
+            );
+          })()}
       </div>
-      <div className="space-y-2">
-        <input aria-label="Source URL" placeholder="https://example.com/article" className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10" value={url} onChange={e=>setUrl(e.target.value)} />
-        <textarea aria-label="Source snippet" placeholder="Relevant snippet..." className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10" value={snippet} onChange={e=>setSnippet(e.target.value)} />
-        <input aria-label="Source note" placeholder="Notes" className="w-full px-3 py-2 rounded-lg bg-black/40 border border-white/10" value={note} onChange={e=>setNote(e.target.value)} />
-        <button aria-label="Add source" onClick={addRef} className="px-3 py-2 rounded-lg bg-white/10 border border-white/10">Add</button>
+      <div className="sources-panel-fields">
+        <input aria-label="Source URL" placeholder="https://example.com/article" className="input" value={url} onChange={e=>setUrl(e.target.value)} />
+        <textarea aria-label="Source snippet" placeholder="Relevant snippet..." className="input" rows={3} value={snippet} onChange={e=>setSnippet(e.target.value)} />
+        <input aria-label="Source note" placeholder="Notes" className="input" value={note} onChange={e=>setNote(e.target.value)} />
+        <button type="button" aria-label="Add source" onClick={addRef} className="btn secondary sm">Add</button>
       </div>
-      <div className="mt-4 space-y-2">
+      <div className="sources-panel-list">
         {list.map((s, i) => (
-          <div key={i} className="rounded-lg bg-black/30 border border-white/10 p-3">
+          <div key={i} className="sources-panel-item">
             <div className="text-sm break-words">{s.url || "(no url)"}</div>
-            {s.snippet && <div className="text-xs text-zinc-300 mt-1">{s.snippet}</div>}
-            {s.note && <div className="text-xs text-zinc-400 mt-1">{s.note}</div>}
+            {s.snippet && <div className="text-xs text-muted mt-1">{s.snippet}</div>}
+            {s.note && <div className="text-xs text-muted mt-1">{s.note}</div>}
             <div className="mt-2">
-              <button aria-label="Delete source" onClick={() => dispatch({ type: "removeSourceRef", questionId, index: i })} className="px-2 py-1 rounded bg-red-500/20 border border-red-500/30 text-sm">Delete</button>
+              <button type="button" aria-label="Delete source" onClick={() => dispatch({ type: "removeSourceRef", questionId, index: i })} className="btn danger sm">Delete</button>
             </div>
           </div>
         ))}
-        {list.length === 0 && <div className="text-sm text-zinc-400">No sources yet.</div>}
+        {list.length === 0 && <div className="text-sm text-muted">No sources yet.</div>}
       </div>
     </div>
   );

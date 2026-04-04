@@ -58,14 +58,15 @@ export default function NeonToggle() {
   const label = PALETTES[id].label;
   return (
     <button
-      aria-label={`Switch neon color (current ${label})`}
-      title={`Neon: ${label} — click to change`}
+      type="button"
+      aria-label={`Accent color: ${label}. Cycles through preset accent themes for buttons and highlights.`}
+      title={`Accent: ${label} (click to change)`}
       onClick={handleClick}
-      className="btn"
-      style={{ display:"inline-flex", alignItems:"center", gap:8 }}
+      className="btn sm secondary"
+      style={{ display: "inline-flex", alignItems: "center", gap: 8 }}
     >
       <span className="neon-swatch" aria-hidden />
-      {label}
+      <span>Accent: {label}</span>
     </button>
   );
 }

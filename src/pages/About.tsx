@@ -1,43 +1,45 @@
 import React from "react";
 import { APP_NAME } from "../config/brand";
+import { PageShell } from "../components/ui";
 
 export default function About() {
   return (
-    <div className="space-y-4">
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-        <div className="text-xl font-semibold">About {APP_NAME}</div>
-        <p className="mt-2 text-zinc-300">
-          {APP_NAME} is privacy-first exam prep. Everything runs locally in your browser:
-          no servers, no external API calls. Build quizzes with sources, study with adaptive
-          review, practice with timers, simulate exams, and export your data anytime.
+    <PageShell variant="document">
+      <section className="content-section">
+        <h1 className="document-title">About {APP_NAME}</h1>
+        <p className="document-prose" style={{ margin: 0 }}>
+          {APP_NAME} is privacy-first exam prep. Everything runs locally in your browser: no servers, no external API
+          calls. Build quizzes with sources, study with adaptive review, practice with timers, simulate exams, and export
+          your data anytime.
         </p>
-      </div>
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-        <div className="text-lg font-semibold">What’s next</div>
-        <ul className="list-disc list-inside text-zinc-300 mt-2">
+      </section>
+      <section className="content-section">
+        <h2 className="document-section-title">What’s next</h2>
+        <ul className="document-list list-disc list-inside space-y-1">
           <li>Import/export quiz data</li>
           <li>Richer question types and media</li>
           <li>Smarter review mode and spaced repetition</li>
         </ul>
-      </div>
-      <div id="privacy" className="rounded-2xl bg-white/5 border border-white/10 p-5">
-        <div className="text-lg font-semibold">Privacy & Security</div>
-        <p className="mt-2 text-zinc-300">
-          QuizForge is designed with privacy-first principles. All data stays on your device:
-        </p>
-        <ul className="list-disc list-inside text-zinc-300 mt-2 space-y-1">
+      </section>
+      <section id="privacy" className="content-section">
+        <h2 className="document-section-title">Privacy & Security</h2>
+        <p className="document-prose">QuizForge is designed with privacy-first principles. All data stays on your device:</p>
+        <ul className="document-list list-disc list-inside space-y-1" style={{ marginTop: "var(--space-md)" }}>
           <li>No webcam or microphone access required</li>
           <li>No external API calls or data transmission</li>
           <li>All quiz data stored locally in your browser</li>
           <li>No tracking, analytics, or user profiling</li>
           <li>Export your data anytime for backup or migration</li>
         </ul>
-      </div>
-
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-5">
-        <div className="text-lg font-semibold">Links</div>
-        <a className="text-sky-300 hover:underline" href="https://github.com/Eskinder185/QuizForge" target="_blank" rel="noreferrer">GitHub Repo</a>
-      </div>
-    </div>
+      </section>
+      <section className="content-section">
+        <h2 className="document-section-title">Links</h2>
+        <p className="document-prose" style={{ margin: 0 }}>
+          <a href="https://github.com/Eskinder185/QuizForge" target="_blank" rel="noreferrer">
+            GitHub repository
+          </a>
+        </p>
+      </section>
+    </PageShell>
   );
 }

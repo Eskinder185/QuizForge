@@ -1,12 +1,11 @@
 import React from "react";
 import { useApp } from "../store/app";
-import type { Question } from "../types/quiz";
-import { whyNow } from "../utils/fsrs";
 import { calibrationBins } from "../utils/exam";
 import { analyzePerformance } from "../utils/analytics";
 import PageHeader from "../components/PageHeader";
 import Empty from "../components/Empty";
 import ChatDock from "../components/ChatDock";
+import { PageShell, Toolbar } from "../components/ui";
 
 type Mode = "review" | "practice";
 
@@ -58,38 +57,59 @@ export default function Study() {
     return `I'm weak on ${weaknessTags.join(", ")}. Explain the main misconceptions and give a 6-step plan for the next week.`;
   }, [state.examAttempts, state.practiceAttempts, state.quizzes]);
 
+  if (quizzes.length === 0) {
     return (
-      <div className="container">
+      <PageShell>
+        <PageHeader
+          title="Study"
+          subtitle="Review and practice open up after you have at least one saved quiz."
+        />
+        <Empty
+          flowStep="study"
+          title="No quizzes to study yet"
+          body="Study reads from the quizzes you create on Build. Without a quiz, there is no deck to review or practice."
+          hint="Flow: Build your first questions → come back here for adaptive review → use Exam for timed runs → check Results after a session."
+          cta="Go to Build"
+          to="/build"
+        />
+      </PageShell>
+    );
+  }
+
+  return (
+    <PageShell variant="workspace">
         <PageHeader 
           title="Study" 
-          subtitle="Adaptive review and focused reps." 
+          subtitle="Adaptive review and focused reps—using the quizzes you built." 
           right={
             <div className="row">
               <button 
-                className="btn"
+                type="button"
+                className="btn secondary"
                 onClick={() => setShowChat(true)}
               >
-                🧠 Study Coach
+                Study Coach
               </button>
-              <button className="btn primary">Start Session</button>
+              <button type="button" className="btn primary">
+                Start session
+              </button>
             </div>
           } 
         />
         
         {/* Micro-drill CTA */}
         {state.microDrill && (
-          <div className="rounded-2xl bg-blue-600/20 border border-blue-500/30 p-4 mb-4">
-            <div className="flex items-center justify-between">
+          <div className="callout-accent">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <div>
-                <div className="font-semibold text-blue-200">Micro-Drill Ready</div>
-                <div className="text-sm text-blue-300 mt-1">
+                <div className="font-semibold text-base" style={{ color: "var(--text)" }}>
+                  Micro-Drill Ready
+                </div>
+                <div className="text-sm text-muted mt-1">
                   {state.microDrill.questionIds.length} questions from your weak areas
                 </div>
               </div>
-              <button 
-                onClick={handleStartMicroDrill}
-                className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-colors"
-              >
+              <button type="button" onClick={handleStartMicroDrill} className="btn primary">
                 Start Micro-Drill
               </button>
             </div>
@@ -97,25 +117,40 @@ export default function Study() {
         )}
 
         {/* Calibration Widget */}
-        <div className="card" style={{ marginBottom: "20px" }}>
-          <div style={{ fontSize: "var(--font-size-lg)", fontWeight: 600, marginBottom: "8px" }}>Confidence Calibration</div>
-          <div style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "16px" }}>Honest confidence = smarter spacing</div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "12px" }}>
+        <div className="content-section" style={{ paddingTop: 0 }}>
+          <div className="section-title" style={{ marginBottom: "var(--space-sm)" }}>
+            Confidence Calibration
+          </div>
+          <p className="lead" style={{ marginBottom: "var(--space-lg)" }}>
+            Honest confidence = smarter spacing
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: "var(--space-md)" }}>
             {Object.entries(calibration).map(([confidence, bin]) => (
               <div key={confidence} style={{ textAlign: "center" }}>
-                <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "8px", fontWeight: 500 }}>{confidence}</div>
-                <div style={{ width: "100%", background: "rgba(255, 255, 255, 0.1)", borderRadius: "8px", height: "8px", marginBottom: "4px", overflow: "hidden" }}>
-                  <div 
-                    style={{ 
-                      background: "var(--accent)", 
-                      height: "100%", 
-                      borderRadius: "8px", 
-                      transition: "all 300ms ease",
-                      width: `${bin.accuracy * 100}%` 
+                <div className="text-xs font-medium text-muted" style={{ marginBottom: "var(--space-sm)" }}>
+                  {confidence}
+                </div>
+                <div
+                  style={{
+                    width: "100%",
+                    background: "var(--surface-2)",
+                    borderRadius: "var(--radius-sm)",
+                    height: "6px",
+                    marginBottom: "var(--space-xs)",
+                    overflow: "hidden",
+                  }}
+                >
+                  <div
+                    style={{
+                      background: "var(--accent)",
+                      height: "100%",
+                      borderRadius: "var(--radius-sm)",
+                      transition: "width var(--transition-slow)",
+                      width: `${bin.accuracy * 100}%`,
                     }}
                   />
                 </div>
-                <div style={{ fontSize: "11px", color: "var(--text-muted)" }}>
+                <div className="text-xs text-muted">
                   {Math.round(bin.accuracy * 100)}% ({bin.count} attempts)
                 </div>
               </div>
@@ -123,26 +158,60 @@ export default function Study() {
           </div>
         </div>
 
-        <div className="panel row">
-          <select className="input" style={{ maxWidth: 160 }} value={mode} onChange={e => setMode(e.target.value as Mode)}>
-            <option value="review">Review</option><option value="practice">Practice</option>
+        <Toolbar>
+          <select
+            className="input"
+            style={{ maxWidth: 160 }}
+            value={mode}
+            onChange={(e) => setMode(e.target.value as Mode)}
+            aria-label="Study mode"
+          >
+            <option value="review">Review</option>
+            <option value="practice">Practice</option>
           </select>
-          <select className="input" style={{ maxWidth: 160 }} value={tag} onChange={e => setTag(e.target.value)}>
+          <select
+            className="input"
+            style={{ maxWidth: 160 }}
+            value={tag}
+            onChange={(e) => setTag(e.target.value)}
+            aria-label="Filter by tag"
+          >
             <option>All tags</option>
-            {quizzes.flatMap(q => q.questions.flatMap(qq => qq.tags || [])).filter((v, i, a) => a.indexOf(v) === i).map(t => <option key={t}>{t}</option>)}
+            {quizzes
+              .flatMap((q) => q.questions.flatMap((qq) => qq.tags || []))
+              .filter((v, i, a) => a.indexOf(v) === i)
+              .map((t) => (
+                <option key={t}>
+                  {t}
+                </option>
+              ))}
           </select>
-          <select className="input" style={{ maxWidth: 160 }} value={level} onChange={e => setLevel(e.target.value)}>
-            <option>All levels</option><option>easy</option><option>medium</option><option>hard</option>
+          <select
+            className="input"
+            style={{ maxWidth: 160 }}
+            value={level}
+            onChange={(e) => setLevel(e.target.value)}
+            aria-label="Filter by difficulty"
+          >
+            <option>All levels</option>
+            <option>easy</option>
+            <option>medium</option>
+            <option>hard</option>
           </select>
           <div className="spacer" />
-          <button className="btn">Start Session</button>
-        </div>
-
-        {quizzes.length === 0 && (
-          <div style={{ marginTop: 16 }}>
-            <Empty title="No content to study" body="Create a quiz on the Build page." cta="Build a quiz" to="/build" />
-          </div>
-        )}
+          <button
+            type="button"
+            className="btn"
+            disabled
+            title="Guided session player is not available yet. Use Study Coach for now."
+            aria-describedby="study-start-session-hint"
+          >
+            Start session
+          </button>
+          <span id="study-start-session-hint" className="sr-only">
+            Not available yet. Use the Study Coach button for AI guidance.
+          </span>
+        </Toolbar>
 
         {showChat && (
           <ChatDock
@@ -151,8 +220,7 @@ export default function Study() {
             initialMessage={getWeaknessSummary}
           />
         )}
-      </div>
-    );
-  }
-
+    </PageShell>
+  );
+}
 

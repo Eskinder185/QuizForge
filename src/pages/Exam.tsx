@@ -6,6 +6,7 @@ import { analyzePerformance, buildMicroDrill } from "../utils/analytics";
 import PageHeader from "../components/PageHeader";
 import Empty from "../components/Empty";
 import ExamSetup from "../components/ExamSetup";
+import { PageShell } from "../components/ui";
 import type { ExamAttempt } from "../types/quiz";
 
 type ExamMode = "setup" | "running" | "review" | "results";
@@ -110,64 +111,45 @@ export default function Exam() {
 
   if (quizzes.length === 0) {
     return (
-      <div className="container">
-        <PageHeader title="Exam" />
-        <Empty 
-          title="No quizzes available" 
-          body="Create a quiz first to start an exam." 
-          cta="Build a quiz" 
-          to="/build" 
+      <PageShell>
+        <PageHeader
+          title="Exam"
+          subtitle="Timed runs use the quizzes you save on Build—add one there first."
         />
-      </div>
+        <Empty
+          flowStep="exam"
+          title="You need a quiz before you can start an exam"
+          body="The exam simulator pulls from your saved quizzes. Right now you do not have any, so there is nothing to schedule or score."
+          hint="Create questions on Build, then return here to pick a preset and start. Afterward, open Results to see how you did."
+          cta="Go to Build"
+          to="/build"
+        />
+      </PageShell>
     );
   }
 
   return (
-    <div className="container">
+    <PageShell variant="workspace">
       <PageHeader title="Exam" subtitle="Realistic exam simulator with timers, flags, and review." />
 
-      {/* Privacy Badge */}
-      <div style={{ 
-        background: "transparent", 
-        border: "0",
-        padding: "0",
-        marginBottom: "var(--space-md)",
-        color: "var(--muted)",
-        fontSize: "var(--font-size-sm)"
-      }}>
-        <div style={{ 
-          display: "flex", 
-          alignItems: "center", 
-          justifyContent: "space-between",
-          flexWrap: "wrap",
-          gap: "var(--space-xs)"
-        }}>
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-xs)", flex: "1", minWidth: "200px" }}>
-            <div style={{ 
-              width: "6px", 
-              height: "6px", 
-              background: "var(--success)", 
-              borderRadius: "50%",
-              flexShrink: 0
-            }}></div>
-            <span>
-              Privacy-first: no webcam, no mic, local-only
-            </span>
-          </div>
-          <a 
-            href="/about#privacy" 
-            style={{ 
-              fontSize: "var(--font-size-xs)", 
-              color: "var(--accent)", 
-              textDecoration: "underline",
-              whiteSpace: "nowrap",
-              flexShrink: 0
-            }}
-            aria-label="Learn more about privacy"
-          >
-            Learn more
-          </a>
+      <div className="exam-privacy-strip">
+        <div className="exam-privacy-strip__left">
+          <span className="exam-privacy-strip__dot" aria-hidden />
+          <span>Privacy-first: no webcam, no mic, local-only</span>
         </div>
+        <a
+          href="/about#privacy"
+          className="text-sm whitespace-nowrap shrink-0"
+          style={{
+            fontSize: "var(--font-size-xs)",
+            color: "var(--accent)",
+            textDecoration: "underline",
+            textUnderlineOffset: "3px",
+          }}
+          aria-label="Learn more about privacy"
+        >
+          Learn more
+        </a>
       </div>
 
       {mode === "setup" && (
@@ -175,30 +157,24 @@ export default function Exam() {
       )}
 
       {mode === "running" && currentAttempt && (
-        <div className="panel">
+        <div className="content-section">
           <h3>Exam Running</h3>
           <p>Exam functionality is temporarily unavailable. The ExamRunner component has been removed.</p>
-          <button 
-            className="btn btn-primary" 
-            onClick={() => handleFinishExam(true)}
-          >
+          <button className="btn primary" onClick={() => handleFinishExam(true)}>
             Finish Exam
           </button>
         </div>
       )}
 
       {mode === "review" && currentAttempt && (
-        <div className="panel">
+        <div className="content-section">
           <h3>Exam Review</h3>
           <p>Review functionality is temporarily unavailable. The ExamReview component has been removed.</p>
-          <button 
-            className="btn btn-primary" 
-            onClick={handleCloseReview}
-          >
+          <button className="btn primary" onClick={handleCloseReview}>
             Close Review
           </button>
         </div>
       )}
-    </div>
+    </PageShell>
   );
 }

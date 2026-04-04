@@ -38,7 +38,7 @@ export default function AiKeyModal({ isOpen, onClose }: AiKeyModalProps) {
 
   return (
     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-      <div className="panel max-w-md w-full mx-4">
+      <div className="surface-floating max-w-md w-full mx-4">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold">Set API Key</h2>
           <button

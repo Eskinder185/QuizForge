@@ -1,10 +1,14 @@
 import React from "react";
-export default function Stat({ label, value, hint }:{ label:string; value:React.ReactNode; hint?:string }) {
+export default function Stat({ label, value, hint }: { label: string; value: React.ReactNode; hint?: string }) {
   return (
-    <div className="card" style={{ padding: 14 }}>
-      <div style={{ fontSize:12, color:"var(--muted)" }}>{label}</div>
-      <div style={{ fontWeight:800, fontSize:18, marginTop:4 }}>{value}</div>
-      {hint && <div className="lead" style={{ marginTop:6 }}>{hint}</div>}
+    <div className="stat-tile">
+      <div className="stat-tile__label">{label}</div>
+      <div className="stat-tile__value">{value}</div>
+      {hint ? (
+        <p className="lead" style={{ marginTop: "var(--space-sm)", marginBottom: 0 }}>
+          {hint}
+        </p>
+      ) : null}
     </div>
   );
 }

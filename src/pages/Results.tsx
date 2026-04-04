@@ -1,192 +1,461 @@
 import React from "react";
 import { useApp } from "../store/app";
-import { analyzePerformance, buildMicroDrill } from "../utils/analytics";
+import { analyzePerformance, buildMicroDrill, type AnalysisResult } from "../utils/analytics";
 import { useNavigate } from "react-router-dom";
 import ChatDock from "../components/ChatDock";
 import PageHeader from "../components/PageHeader";
 import Empty from "../components/Empty";
-import { humanTime } from "../utils/exam";
+import { PageShell, SectionHeader, Metric } from "../components/ui";
+import { StaggerChildren } from "../motion/StaggerChildren";
+import type { ExamAttempt, PracticeAttempt } from "../types/quiz";
 
-type BreakdownRow = { topic: string; correct: number; total: number };
+function isPracticeAttempt(a: ExamAttempt | PracticeAttempt): a is PracticeAttempt {
+  return "mode" in a;
+}
+
+function formatWhen(ms: number) {
+  return new Date(ms).toLocaleString(undefined, { dateStyle: "medium", timeStyle: "short" });
+}
+
+function formatDuration(sec: number) {
+  if (!Number.isFinite(sec) || sec < 0) return "—";
+  const m = Math.floor(sec / 60);
+  const s = sec % 60;
+  return `${m}:${String(s).padStart(2, "0")}`;
+}
+
+function statAccuracyClass(pct: number): string {
+  if (pct >= 80) return "results-stat-value results-stat-value--success";
+  if (pct >= 60) return "results-stat-value results-stat-value--warn";
+  return "results-stat-value results-stat-value--danger";
+}
+
+function meterFillClass(pct: number): string {
+  if (pct >= 80) return "results-meter-fill results-meter-fill--success";
+  if (pct >= 55) return "results-meter-fill results-meter-fill--warn";
+  return "results-meter-fill results-meter-fill--danger";
+}
+
+function attemptScore(a: ExamAttempt | PracticeAttempt): { text: string; pct: number | null } {
+  const ans = a.answers ?? [];
+  const correct = ans.filter((x) => x.correct).length;
+  const total = ans.length;
+  if (total === 0) return { text: "—", pct: null };
+  const pct = Math.round((correct / total) * 100);
+  if (!isPracticeAttempt(a) && typeof a.score === "number") {
+    return { text: `${correct}/${total} · ${Math.round(a.score)}%`, pct: Math.round(a.score) };
+  }
+  return { text: `${correct}/${total} (${pct}%)`, pct };
+}
+
+function emptyAnalysis(): AnalysisResult {
+  return { byTag: {}, byDifficulty: {}, topWeaknesses: [], topStrengths: [] };
+}
 
 export default function Results() {
   const { state, dispatch } = useApp();
   const navigate = useNavigate();
   const [showChat, setShowChat] = React.useState(false);
-  
-  const attempts = [...state.examAttempts, ...state.practiceAttempts].sort((a:any,b:any)=> (b.finishedAt||b.startedAt) - (a.finishedAt||a.startedAt));
+
+  const attempts = [...state.examAttempts, ...state.practiceAttempts].sort(
+    (a, b) => (b.finishedAt ?? b.startedAt) - (a.finishedAt ?? a.startedAt)
+  );
   const last = attempts[0];
-  const totalQ = last?.answers?.length || 0;
-  const correct = last?.answers?.filter((a:any)=>a.correct).length || 0;
-  const timeSec = Math.round(((last?.finishedAt||0) - (last?.startedAt||0)) / 1000);
-  const accuracy = totalQ ? Math.round((correct/totalQ)*100) : 0;
-  
-  // Get the quiz for the last attempt
-  const lastQuiz = last?.quizId ? state.quizzes.find(q => q.id === last.quizId) : null;
-  
-  // Analyze performance if we have a recent attempt
-  const analysis = React.useMemo(() => {
-    if (!last || !last.quizId) return { topWeaknesses: [], topStrengths: [] };
-    const quiz = state.quizzes.find(q => q.id === last.quizId);
-    if (!quiz) return { topWeaknesses: [], topStrengths: [] };
+  const totalQ = last?.answers?.length ?? 0;
+  const correct = last?.answers?.filter((x) => x.correct).length ?? 0;
+  const timeSec = Math.round(((last?.finishedAt ?? 0) - (last?.startedAt ?? 0)) / 1000);
+  const accuracy = totalQ ? Math.round((correct / totalQ) * 100) : 0;
+
+  const lastQuiz = last?.quizId ? state.quizzes.find((q) => q.id === last.quizId) ?? null : null;
+
+  const analysis = React.useMemo((): AnalysisResult => {
+    if (!last?.quizId) return emptyAnalysis();
+    const quiz = state.quizzes.find((q) => q.id === last.quizId);
+    if (!quiz) return emptyAnalysis();
     return analyzePerformance(quiz, attempts);
   }, [last, state.quizzes, attempts]);
 
-  const handlePracticeWeakness = (weakness: any) => {
+  const tagBreakdown = React.useMemo(() => {
+    return Object.entries(analysis.byTag)
+      .map(([tag, d]) => ({
+        tag,
+        seen: d.seen,
+        correct: d.correct,
+        pct: d.seen ? Math.round((d.correct / d.seen) * 100) : 0,
+      }))
+      .filter((r) => r.seen > 0)
+      .sort((a, b) => b.seen - a.seen);
+  }, [analysis.byTag]);
+
+  const difficultyBreakdown = React.useMemo(() => {
+    return Object.entries(analysis.byDifficulty)
+      .map(([difficulty, d]) => ({
+        difficulty,
+        seen: d.seen,
+        correct: d.correct,
+        pct: d.seen ? Math.round((d.correct / d.seen) * 100) : 0,
+      }))
+      .filter((r) => r.seen > 0)
+      .sort((a, b) => b.seen - a.seen);
+  }, [analysis.byDifficulty]);
+
+  const handlePracticeWeakness = (weakness: (typeof analysis.topWeaknesses)[0]) => {
     if (!last?.quizId) return;
-    const quiz = state.quizzes.find(q => q.id === last.quizId);
+    const quiz = state.quizzes.find((q) => q.id === last.quizId);
     if (!quiz) return;
-    
+
     const microDrillQuestions = buildMicroDrill(quiz, [weakness], 8);
-    const questionIds = microDrillQuestions.map(q => q.id);
-    
+    const questionIds = microDrillQuestions.map((q) => q.id);
+
     dispatch({
       type: "createMicroDrill",
       quizId: last.quizId,
-      questionIds
+      questionIds,
     });
     navigate("/study");
   };
 
   const getCoachMessage = () => {
-    const weaknessTags = analysis.topWeaknesses.map(w => w.tag);
+    const weaknessTags = analysis.topWeaknesses.map((w) => w.tag);
     if (weaknessTags.length === 0) return "I just finished an exam. Give me study tips for improvement.";
     return `I'm weak on ${weaknessTags.join(", ")}. Explain the main misconceptions and give a 6-step plan for the next week.`;
   };
 
-  const rows: BreakdownRow[] = [
-    { topic: "math", correct: 3, total: 4 },
-    { topic: "science", correct: 2, total: 3 },
-    { topic: "history", correct: 2, total: 3 },
-  ];
+  const hasAttempts = attempts.length > 0;
+  const hasQuizzes = state.quizzes.length > 0;
+
+  const lastWhen = last ? (last.finishedAt ?? last.startedAt) : 0;
+  const lastWhenLabel = lastWhen ? formatWhen(lastWhen) : null;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: "20px" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(200px, 1fr))", gap: "16px" }}>
-        <div className="card" style={{ textAlign: "center", padding: "20px" }}>
-          <div style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "8px" }}>Questions Reviewed</div>
-          <div style={{ fontSize: "var(--font-size-2xl)", fontWeight: 700, color: "var(--accent)" }}>{totalQ}</div>
-        </div>
-        <div className="card" style={{ textAlign: "center", padding: "20px" }}>
-          <div style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "8px" }}>Accuracy</div>
-          <div style={{ fontSize: "var(--font-size-2xl)", fontWeight: 700, color: accuracy >= 80 ? "var(--success)" : accuracy >= 60 ? "var(--warning)" : "var(--danger)" }}>{accuracy}%</div>
-        </div>
-        <div className="card" style={{ textAlign: "center", padding: "20px" }}>
-          <div style={{ fontSize: "14px", color: "var(--text-muted)", marginBottom: "8px" }}>Time</div>
-          <div style={{ fontSize: "var(--font-size-2xl)", fontWeight: 700, color: "var(--text)" }}>{Math.floor(timeSec/60)}:{String(timeSec%60).padStart(2,'0')}</div>
-        </div>
-      </div>
+    <PageShell>
+      <PageHeader
+        title="Results"
+        subtitle={
+          hasAttempts
+            ? "Review outcomes from study and exam sessions—everything here is computed locally from your attempts."
+            : "Accuracy, timing, and tag-level breakdowns appear after you complete at least one session."
+        }
+        right={
+          hasAttempts ? (
+            <button type="button" className="btn secondary" onClick={() => setShowChat(true)}>
+              Ask Coach
+            </button>
+          ) : undefined
+        }
+      />
 
-      {/* Strengths & Weaknesses Section */}
-      <div className="card">
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "20px" }}>
-          <h2 style={{ fontSize: "var(--font-size-xl)", fontWeight: 600, margin: 0 }}>Strengths & Weaknesses</h2>
-          <button 
-            onClick={() => setShowChat(true)}
-            className="btn secondary"
-            style={{ display: "flex", alignItems: "center", gap: "8px" }}
-          >
-            🧠 Ask Coach
-          </button>
-        </div>
-
-        {/* Top Weaknesses */}
-        {analysis.topWeaknesses.length > 0 && (
-          <div style={{ marginBottom: "24px" }}>
-            <h3 style={{ fontSize: "var(--font-size-lg)", fontWeight: 600, marginBottom: "12px", color: "var(--danger)" }}>Top Weaknesses</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {analysis.topWeaknesses.map((weakness, index) => (
-                <div key={index} className="panel" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(244, 63, 94, 0.1)", border: "1px solid rgba(244, 63, 94, 0.2)" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>{weakness.tag}</div>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)", marginBottom: "4px" }}>
-                      Error rate: {Math.round(weakness.errRate * 100)}% • 
-                      Avg time: {Math.round(weakness.avgTimeMs / 1000)}s
-                    </div>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>{weakness.note}</div>
-                  </div>
-                  <button 
-                    onClick={() => handlePracticeWeakness(weakness)}
-                    className="btn danger"
-                    style={{ fontSize: "12px", padding: "8px 16px" }}
-                    aria-label={`Practice ${weakness.tag}`}
-                  >
-                    Practice this
-                  </button>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {/* Top Strengths */}
-        {analysis.topStrengths.length > 0 && (
-          <div>
-            <h3 style={{ fontSize: "var(--font-size-lg)", fontWeight: 600, marginBottom: "12px", color: "var(--success)" }}>Top Strengths</h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
-              {analysis.topStrengths.map((strength, index) => (
-                <div key={index} className="panel" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", background: "rgba(16, 185, 129, 0.1)", border: "1px solid rgba(16, 185, 129, 0.2)" }}>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: "14px", fontWeight: 600, marginBottom: "4px" }}>{strength.tag}</div>
-                    <div style={{ fontSize: "12px", color: "var(--text-muted)" }}>
-                      Accuracy: {Math.round(strength.accRate * 100)}% • 
-                      Avg time: {Math.round(strength.avgTimeMs / 1000)}s
-                    </div>
-                  </div>
-                  <div style={{ padding: "8px 16px", background: "var(--success)", color: "white", fontSize: "12px", fontWeight: 500, borderRadius: "8px" }}>
-                    Strong
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {analysis.topWeaknesses.length === 0 && analysis.topStrengths.length === 0 && (
-          <div className="text-center text-zinc-400 py-8">
-            Complete more questions to see your strengths and weaknesses analysis.
-          </div>
-        )}
-      </div>
-
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
-        <div className="font-semibold mb-2">Accuracy by tag (placeholder)</div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="text-left text-zinc-300">
-              <tr><th>Tag</th><th>Correct</th><th>Total</th><th>%</th></tr>
-            </thead>
-            <tbody>
-              {rows.map(r => (
-                <tr key={r.topic} className="border-t border-white/10">
-                  <td>{r.topic}</td>
-                  <td>{r.correct}</td>
-                  <td>{r.total}</td>
-                  <td>{Math.round((r.correct/r.total)*100)}%</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      <div className="rounded-2xl bg-white/5 border border-white/10 p-4">
-        <div className="font-semibold mb-2">Recent Attempts</div>
-        <ul className="text-sm">
-          {attempts.slice(0,10).map((a:any)=> (
-            <li key={a.id} className="border-t border-white/10 py-2">{new Date(a.startedAt).toLocaleString()} — {a.quizId} — {a.answers?.filter((x:any)=>x.correct).length || 0}/{a.answers?.length || 0}</li>
-          ))}
-          {attempts.length===0 && <li>No attempts yet.</li>}
-        </ul>
-      </div>
-
-      {showChat && (
-        <ChatDock
-          mode="study"
-          onClose={() => setShowChat(false)}
-          initialMessage={getCoachMessage()}
+      {!hasAttempts && !hasQuizzes && (
+        <Empty
+          flowStep="results"
+          title="No results yet—you have not created a quiz"
+          body="This page shows scores and trends after you finish studying or taking an exam. There is no data because you do not have any saved quizzes yet."
+          hint="Usual order: Build → Study or Exam → Results. Everything stays in your browser until you export it."
+          cta="Build a quiz"
+          to="/build"
         />
       )}
-    </div>
+
+      {!hasAttempts && hasQuizzes && (
+        <Empty
+          flowStep="results"
+          title="No finished sessions yet"
+          body="You already have quizzes saved, but this dashboard fills in only after you complete a study session or an exam attempt."
+          hint="Open Study for review and practice, or Exam for a timed run. When a session ends, summary stats and strengths will show up here."
+          cta="Go to Study"
+          to="/study"
+          secondaryCta="Try Exam"
+          secondaryTo="/exam"
+        />
+      )}
+
+      {hasAttempts && (
+        <>
+        <StaggerChildren className="qf-reveal-sections">
+          <section className="content-section" aria-labelledby="results-summary-heading">
+            <h2 id="results-summary-heading" className="sr-only">
+              Last session summary
+            </h2>
+            <div className="results-stats-grid">
+              <Metric
+                kicker="Last session · Items"
+                value={totalQ}
+                hint="Graded questions in your most recent completed run."
+                valueClassName="results-stat-value results-stat-value--accent"
+              />
+              <Metric
+                kicker="Last session · Accuracy"
+                value={totalQ ? `${accuracy}%` : "—"}
+                hint="Share correct for that session only."
+                valueClassName={statAccuracyClass(accuracy)}
+              />
+              <Metric
+                kicker="Last session · Duration"
+                value={formatDuration(timeSec)}
+                hint="Wall time from start to finish (when timestamps are present)."
+              />
+              <Metric
+                kicker="All sessions"
+                value={attempts.length}
+                hint="Exam and study attempts stored in this browser."
+              />
+            </div>
+            {lastWhenLabel && (
+              <p className="results-context-bar" style={{ marginTop: "var(--space-md)", marginBottom: 0 }}>
+                <strong>Most recent:</strong> {lastWhenLabel}
+                {lastQuiz ? (
+                  <>
+                    {" "}
+                    · <strong>{lastQuiz.title}</strong>
+                  </>
+                ) : null}
+                {last && !lastQuiz ? (
+                  <>
+                    {" "}
+                    · <span>Quiz no longer in library</span>
+                  </>
+                ) : null}
+              </p>
+            )}
+          </section>
+
+          <section className="content-section" aria-labelledby="results-insights-heading">
+            <SectionHeader
+              headingId="results-insights-heading"
+              title="Insights"
+              description={
+                <>
+                  Strengths and gaps are inferred from your answers. They work best when questions have{" "}
+                  <strong style={{ color: "var(--text)", fontWeight: 600 }}>tags</strong> in Build and you have enough
+                  graded attempts on the same quiz.
+                  {lastQuiz ? (
+                    <>
+                      {" "}
+                      Current view is anchored to{" "}
+                      <strong style={{ color: "var(--text)", fontWeight: 600 }}>{lastQuiz.title}</strong>.
+                    </>
+                  ) : null}
+                </>
+              }
+            />
+
+            {analysis.topWeaknesses.length > 0 && (
+              <div style={{ marginBottom: "var(--space-xl)" }}>
+                <h3 className="text-sm font-semibold text-danger" style={{ margin: "0 0 var(--space-md)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  Needs attention
+                </h3>
+                <div className="results-insight-list">
+                  {analysis.topWeaknesses.map((weakness) => (
+                    <div key={weakness.tag} className="results-insight results-insight--weak">
+                      <div style={{ flex: "1 1 12rem" }}>
+                        <p className="results-insight-tag">{weakness.tag}</p>
+                        <p className="results-insight-meta">
+                          Error rate {Math.round(weakness.errRate * 100)}% · Avg time{" "}
+                          {Math.round(weakness.avgTimeMs / 1000)}s per item
+                        </p>
+                        <p className="results-insight-note">{weakness.note}</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handlePracticeWeakness(weakness)}
+                        className="btn danger sm"
+                        aria-label={`Practice questions tagged ${weakness.tag}`}
+                      >
+                        Practice this
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {analysis.topStrengths.length > 0 && (
+              <div style={{ marginBottom: analysis.topWeaknesses.length ? 0 : undefined }}>
+                <h3 className="text-sm font-semibold text-success" style={{ margin: "0 0 var(--space-md)", letterSpacing: "0.04em", textTransform: "uppercase" }}>
+                  Going well
+                </h3>
+                <div className="results-insight-list">
+                  {analysis.topStrengths.map((strength) => (
+                    <div key={strength.tag} className="results-insight results-insight--strong">
+                      <div style={{ flex: "1 1 12rem" }}>
+                        <p className="results-insight-tag">{strength.tag}</p>
+                        <p className="results-insight-meta">
+                          Accuracy {Math.round(strength.accRate * 100)}% · Avg time{" "}
+                          {Math.round(strength.avgTimeMs / 1000)}s per item
+                        </p>
+                      </div>
+                      <span className="badge success">Strong</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {analysis.topWeaknesses.length === 0 && analysis.topStrengths.length === 0 && (
+              <div className="results-empty-panel">
+                <h3 className="results-section-title">Not enough signal yet</h3>
+                <p>
+                  Keep completing sessions on this quiz. Once tags see enough graded answers, strengths and weak spots
+                  will surface here automatically (the engine skips tags with very few samples).
+                </p>
+              </div>
+            )}
+          </section>
+
+          <section className="content-section" aria-labelledby="results-tags-heading">
+            <SectionHeader
+              headingId="results-tags-heading"
+              title="Accuracy by tag"
+              description="Aggregates from your attempts that match questions on the anchor quiz. Tags come from how you labeled questions in Build."
+            />
+
+            {tagBreakdown.length > 0 ? (
+              <div className="results-data-table-wrap">
+                <table className="results-data-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Tag</th>
+                      <th scope="col" className="num">
+                        Correct
+                      </th>
+                      <th scope="col" className="num">
+                        Attempted
+                      </th>
+                      <th scope="col">Accuracy</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {tagBreakdown.map((row) => (
+                      <tr key={row.tag}>
+                        <td>
+                          <span className="font-medium">{row.tag}</span>
+                        </td>
+                        <td className="num">{row.correct}</td>
+                        <td className="num">{row.seen}</td>
+                        <td>
+                          <div className="results-meter">
+                            <div className="results-meter-track" aria-hidden>
+                              <div className={meterFillClass(row.pct)} style={{ width: `${row.pct}%` }} />
+                            </div>
+                            <span className="text-muted" style={{ fontVariantNumeric: "tabular-nums", minWidth: "2.5rem" }}>
+                              {row.pct}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ) : (
+              <div className="results-empty-panel">
+                <h3 className="results-section-title">No tag breakdown yet</h3>
+                <p>
+                  Add tags to your questions on Build, then complete more graded sessions. This table fills only when
+                  answers can be tied to tags from the anchor quiz.
+                </p>
+              </div>
+            )}
+          </section>
+
+          {difficultyBreakdown.length > 0 && (
+            <section className="content-section" aria-labelledby="results-diff-heading">
+              <SectionHeader
+                headingId="results-diff-heading"
+                title="Accuracy by difficulty"
+                description="Uses the difficulty field on questions (easy / medium / hard)."
+              />
+              <div className="results-data-table-wrap">
+                <table className="results-data-table">
+                  <thead>
+                    <tr>
+                      <th scope="col">Difficulty</th>
+                      <th scope="col" className="num">
+                        Correct
+                      </th>
+                      <th scope="col" className="num">
+                        Attempted
+                      </th>
+                      <th scope="col">Accuracy</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {difficultyBreakdown.map((row) => (
+                      <tr key={row.difficulty}>
+                        <td style={{ textTransform: "capitalize" }}>{row.difficulty}</td>
+                        <td className="num">{row.correct}</td>
+                        <td className="num">{row.seen}</td>
+                        <td>
+                          <div className="results-meter">
+                            <div className="results-meter-track" aria-hidden>
+                              <div className={meterFillClass(row.pct)} style={{ width: `${row.pct}%` }} />
+                            </div>
+                            <span className="text-muted" style={{ fontVariantNumeric: "tabular-nums", minWidth: "2.5rem" }}>
+                              {row.pct}%
+                            </span>
+                          </div>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </section>
+          )}
+
+          <section className="content-section" aria-labelledby="results-history-heading">
+            <SectionHeader
+              headingId="results-history-heading"
+              title="Session history"
+              description="Newest first. Only sessions stored in this browser are listed."
+            />
+            <div className="results-data-table-wrap">
+              <table className="results-data-table">
+                <thead>
+                  <tr>
+                    <th scope="col">When</th>
+                    <th scope="col">Type</th>
+                    <th scope="col">Quiz</th>
+                    <th scope="col">Score</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {attempts.slice(0, 12).map((a) => {
+                    const quiz = state.quizzes.find((q) => q.id === a.quizId);
+                    const title = quiz?.title ?? "Removed or unknown quiz";
+                    const when = a.finishedAt ?? a.startedAt;
+                    const { text: scoreText } = attemptScore(a);
+                    const typeLabel = isPracticeAttempt(a) ? `Study · ${a.mode}` : "Exam";
+                    return (
+                      <tr key={a.id}>
+                        <td>{formatWhen(when)}</td>
+                        <td>
+                          <span
+                            className={`results-type-pill ${isPracticeAttempt(a) ? "" : "results-type-pill--exam"}`}
+                          >
+                            {typeLabel}
+                          </span>
+                        </td>
+                        <td>{title}</td>
+                        <td style={{ fontVariantNumeric: "tabular-nums" }}>{scoreText}</td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          </section>
+
+        </StaggerChildren>
+        {showChat && (
+          <ChatDock
+            mode="study"
+            onClose={() => setShowChat(false)}
+            initialMessage={getCoachMessage()}
+          />
+        )}
+        </>
+      )}
+    </PageShell>
   );
 }

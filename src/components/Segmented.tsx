@@ -1,11 +1,34 @@
 import React from "react";
-export default function Segmented<T extends string>({ value, onChange, options }:{ value:T; onChange:(v:T)=>void; options:{value:T; label:string}[] }) {
+import { useReducedMotion } from "framer-motion";
+import * as m from "framer-motion/m";
+import { easePremium } from "../motion/prefs";
+
+export default function Segmented<T extends string>({
+  value,
+  onChange,
+  options,
+}: {
+  value: T;
+  onChange: (v: T) => void;
+  options: { value: T; label: string }[];
+}) {
+  const reduce = useReducedMotion();
   return (
-    <div className="row panel" style={{ padding: 6 }}>
-      {options.map(o=>{
-        const active = o.value===value;
+    <div className="segmented-strip">
+      {options.map((o) => {
+        const active = o.value === value;
         return (
-          <button key={o.value} onClick={()=>onChange(o.value)} className={"btn "+(active?"primary":"ghost")}>{o.label}</button>
+          <m.button
+            key={o.value}
+            type="button"
+            aria-pressed={active}
+            onClick={() => onChange(o.value)}
+            className={"btn " + (active ? "primary" : "ghost")}
+            whileTap={reduce ? undefined : { scale: 0.985 }}
+            transition={{ duration: 0.09, ease: easePremium }}
+          >
+            {o.label}
+          </m.button>
         );
       })}
     </div>

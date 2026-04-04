@@ -1,10 +1,9 @@
-// Remove all code after this line (duplicate/stray Build component)
-// (File should end after the single Build component above)
 import React from "react";
 import PageHeader from "../components/PageHeader";
 import Empty from "../components/Empty";
 import ChatDock from "../components/ChatDock";
 import SourcesPanel from "../components/SourcesPanel";
+import { PageShell } from "../components/ui";
 import { useApp } from "../store/app";
 import type { Quiz, Question, SourceRef } from "../types/quiz";
 import type { ParsedItem } from "../ai/json";
@@ -103,69 +102,151 @@ export default function Build() {
   const quiz = state.quizzes.find((qz: Quiz) => qz.id === state.activeQuizId);
 
   return (
-    <div className="container">
+    <PageShell variant="workspace">
       <PageHeader
         title="Build"
-        subtitle="Create questions and sources. Keep it small and focused."
+        subtitle={
+          quiz
+            ? "Create questions and sources. Keep it small and focused."
+            : "Add your first question to create a quiz—then refine prompts, choices, and sources."
+        }
         right={
           <div className="row">
             <button 
               className="btn secondary"
               onClick={() => setShowChat(true)}
             >
-              ✨ Ask AI
+              Ask AI
             </button>
-            <button className="btn ghost">Save Draft</button>
-            <button className="btn primary">Publish</button>
+            <button
+              type="button"
+              className="btn ghost"
+              disabled={!quiz}
+              title={
+                quiz
+                  ? "Local-only: keeps your work in the browser (no server publish)"
+                  : "Add a question first—there is no draft to save yet"
+              }
+            >
+              Save draft
+            </button>
+            <button
+              type="button"
+              className="btn primary"
+              disabled={!quiz}
+              title={
+                quiz
+                  ? "Marks this quiz ready to use in Study and Exam (still stored locally)"
+                  : "Create at least one question before publishing"
+              }
+            >
+              Publish
+            </button>
           </div>
         }
       />
 
-      <div className="panel" style={{ display: "flex", flexDirection: "column", gap: "16px" }}>
+      <div className="panel panel--editor">
+        {!quiz && (
+          <p className="build-first-step-hint" role="status">
+            <strong>Start here:</strong> pick a question type below. Your quiz is saved as soon as the first question
+            exists—you can edit wording, choices, and notes afterward.
+          </p>
+        )}
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "16px" }}>
           <div>
-            <div className="lead" style={{ marginBottom: "8px" }}>Title</div>
-            <input className="input" value={title} onChange={e => setTitle(e.target.value)} placeholder="Enter quiz title..." />
+            <label htmlFor="build-quiz-title" className="lead" style={{ marginBottom: "8px", display: "block" }}>
+              Quiz title
+            </label>
+            <input
+              id="build-quiz-title"
+              className="input"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              placeholder="e.g., Week 4 — Thermodynamics"
+              autoComplete="off"
+              aria-describedby="build-quiz-title-hint"
+            />
+            <span id="build-quiz-title-hint" className="sr-only">
+              Shown at the top of your quiz when you add questions.
+            </span>
           </div>
           <div>
-            <div className="lead" style={{ marginBottom: "8px" }}>Topic</div>
-            <input className="input" value={topic} onChange={e => setTopic(e.target.value)} placeholder="e.g., React, Math, Science..." />
+            <label htmlFor="build-quiz-topic" className="lead" style={{ marginBottom: "8px", display: "block" }}>
+              Default topic tag
+            </label>
+            <input
+              id="build-quiz-topic"
+              className="input"
+              value={topic}
+              onChange={(e) => setTopic(e.target.value)}
+              placeholder="e.g., Physics, Interview prep"
+              autoComplete="off"
+              aria-describedby="build-quiz-topic-hint"
+            />
+            <span id="build-quiz-topic-hint" className="sr-only">
+              New questions inherit this tag until you change it on each question.
+            </span>
           </div>
         </div>
         
         <div style={{ display: "flex", gap: "8px", flexWrap: "wrap" }}>
-          <button className="btn secondary" onClick={() => addQuestion("single")}>+ Single Choice</button>
-          <button className="btn secondary" onClick={() => addQuestion("multi")}>+ Multiple Choice</button>
-          <button className="btn secondary" onClick={() => addQuestion("truefalse")}>+ True/False</button>
-          <button className="btn secondary" onClick={() => addQuestion("text")}>+ Short Answer</button>
-          <button className="btn secondary" onClick={() => addQuestion("code")}>+ Code</button>
+          <button type="button" className="btn secondary" onClick={() => addQuestion("single")}>
+            + Single choice
+          </button>
+          <button type="button" className="btn secondary" onClick={() => addQuestion("multi")}>
+            + Multiple choice
+          </button>
+          <button type="button" className="btn secondary" onClick={() => addQuestion("truefalse")}>
+            + True / false
+          </button>
+          <button type="button" className="btn secondary" onClick={() => addQuestion("text")}>
+            + Short answer
+          </button>
+          <button type="button" className="btn secondary" onClick={() => addQuestion("code")}>
+            + Code
+          </button>
         </div>
       </div>
 
       {!quiz && (
-        <div style={{ marginTop: "24px" }}>
-          <Empty title="No quiz yet" body="Add your first question to start a quiz." />
-        </div>
+        <Empty
+          flowStep="build"
+          title="Your question list will appear here"
+          body="Nothing is wrong—there are no questions yet. Use the buttons above to add one, or jump in with a ready-made multiple-choice stub."
+          hint="After questions show up in this list, click one to edit it and attach sources on the right."
+          primaryAction={{ label: "Add my first question", onClick: () => addQuestion("single") }}
+        />
       )}
 
       {quiz && (
-        <div style={{ marginTop: "24px", display: "grid", gap: "20px", gridTemplateColumns: "2fr 1fr" }}>
-          <div className="card">
-            <div style={{ fontSize: "var(--font-size-xl)", fontWeight: 600, marginBottom: "16px" }}>
-              {quiz.title}
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
+        <div
+          style={{
+            marginTop: "var(--space-2xl)",
+            display: "grid",
+            gap: "var(--space-2xl)",
+            gridTemplateColumns: "2fr 1fr",
+          }}
+        >
+          <div className="build-column">
+            <h2 className="build-column-title">{quiz.title}</h2>
+            <div role="listbox" aria-label="Questions in this quiz" style={{ display: "flex", flexDirection: "column", gap: "12px" }}>
               {quiz.questions.map((q, idx) => (
-                <div 
-                  key={q.id} 
-                  className="panel" 
-                  style={{ 
-                    cursor: "pointer", 
-                    borderColor: selectedId === q.id ? "var(--accent)" : "var(--border)",
-                    borderWidth: selectedId === q.id ? "2px" : "1px",
-                    transition: "all 120ms ease"
-                  }} 
+                <div
+                  key={q.id}
+                  id={`build-q-${q.id}`}
+                  role="option"
+                  aria-selected={selectedId === q.id}
+                  tabIndex={0}
+                  className={`panel panel--selectable${selectedId === q.id ? " is-selected" : ""}`}
+                  style={{ cursor: "pointer" }}
                   onClick={() => setSelectedId(q.id)}
+                  onKeyDown={(e) => {
+                    if (e.key === "Enter" || e.key === " ") {
+                      e.preventDefault();
+                      setSelectedId(q.id);
+                    }
+                  }}
                 >
                   <div className="row" style={{ marginBottom: "8px" }}>
                     <div className="badge">{q.type}</div>
@@ -180,10 +261,8 @@ export default function Build() {
             </div>
           </div>
 
-          <div className="card">
-            <div style={{ fontSize: "var(--font-size-lg)", fontWeight: 600, marginBottom: "12px" }}>
-              Sources & Notes
-            </div>
+          <div className="build-column">
+            <h2 className="build-column-title">Sources & notes</h2>
             {selectedId ? (
               <SourcesPanel quizId={quiz.id} questionId={selectedId} />
             ) : (
@@ -211,6 +290,6 @@ export default function Build() {
           onInsertItems={handleInsertItems}
         />
       )}
-    </div>
+    </PageShell>
   );
 }

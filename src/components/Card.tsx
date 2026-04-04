@@ -17,12 +17,8 @@ export default function Card({
   onClick,
   hover = true
 }: CardProps) {
-  const baseClasses = "card";
-  const classes = [
-    baseClasses,
-    !hover && "no-hover",
-    className
-  ].filter(Boolean).join(" ");
+  const baseClasses = onClick ? "card" : "content-section";
+  const classes = [baseClasses, onClick && !hover && "no-hover", className].filter(Boolean).join(" ");
 
   const CardContent = (
     <>

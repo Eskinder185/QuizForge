@@ -45,10 +45,7 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
     (customMode ? customQuestions > 0 && customMinutes > 0 : selectedPreset);
 
   return (
-    <div className="card" style={{ 
-      maxWidth: "600px", 
-      margin: "0 auto"
-    }}>
+    <div className="exam-setup">
       <h2 style={{ 
         fontSize: "var(--font-size-xl)", 
         fontWeight: 600, 
@@ -60,14 +57,16 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
 
       {/* Quiz Selection */}
       <div style={{ marginBottom: "var(--space-lg)" }}>
-        <label className="lead" style={{ display: "block", marginBottom: "var(--space-xs)" }}>
-          Select Quiz
+        <label htmlFor="exam-setup-quiz" className="lead" style={{ display: "block", marginBottom: "var(--space-xs)" }}>
+          Select quiz
         </label>
         <select
+          id="exam-setup-quiz"
           value={selectedQuizId}
           onChange={(e) => setSelectedQuizId(e.target.value)}
           className="input"
           style={{ width: "100%" }}
+          aria-describedby="exam-setup-quiz-help"
         >
           <option value="">Choose a quiz...</option>
           {state.quizzes.map(quiz => (
@@ -76,6 +75,9 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
             </option>
           ))}
         </select>
+        <p id="exam-setup-quiz-help" className="text-xs text-muted" style={{ margin: "var(--space-xs) 0 0" }}>
+          Only quizzes you built with at least one question appear here.
+        </p>
         {selectedQuiz && (
           <div style={{ fontSize: "14px", color: "var(--text-muted)", marginTop: "4px" }}>
             {selectedQuiz.questions.length} questions available
@@ -84,50 +86,64 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
       </div>
 
       {/* Preset Selection */}
-      <div style={{ marginBottom: "20px" }}>
-        <label className="lead" style={{ display: "block", marginBottom: "8px" }}>
-          Exam Format
-        </label>
-        <div style={{ 
-          display: "flex", 
-          gap: "var(--space-sm)", 
-          marginBottom: "var(--space-sm)",
-          flexWrap: "wrap"
-        }}>
-          <label style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: "var(--space-xs)", 
-            cursor: "pointer",
-            padding: "var(--pad-1) var(--pad-2)",
-            borderRadius: "var(--radius-sm)",
-            background: !customMode ? "var(--surface-1)" : "transparent",
-            border: !customMode ? "1px solid var(--border-mid)" : "1px solid transparent",
-            transition: "all var(--transition-fast)",
-            minHeight: "32px"
-          }}>
+      <fieldset style={{ marginBottom: "20px", border: "none", padding: 0, marginInline: 0 }}>
+        <legend className="lead" style={{ display: "block", marginBottom: "8px", padding: 0 }}>
+          Exam format
+        </legend>
+        <div
+          style={{
+            display: "flex",
+            gap: "var(--space-sm)",
+            marginBottom: "var(--space-sm)",
+            flexWrap: "wrap",
+          }}
+          role="radiogroup"
+          aria-label="Use a preset length or custom counts"
+        >
+          <label
+            htmlFor="exam-mode-preset"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-xs)",
+              cursor: "pointer",
+              padding: "var(--pad-1) var(--pad-2)",
+              borderRadius: "var(--radius-sm)",
+              background: !customMode ? "var(--surface-1)" : "transparent",
+              border: !customMode ? "1px solid var(--border-mid)" : "1px solid transparent",
+              transition: "all var(--transition-fast)",
+              minHeight: "32px",
+            }}
+          >
             <input
+              id="exam-mode-preset"
               type="radio"
+              name="exam-format"
               checked={!customMode}
               onChange={() => setCustomMode(false)}
               style={{ margin: 0 }}
             />
-            Use Preset
+            Use preset
           </label>
-          <label style={{ 
-            display: "flex", 
-            alignItems: "center", 
-            gap: "var(--space-xs)", 
-            cursor: "pointer",
-            padding: "var(--pad-1) var(--pad-2)",
-            borderRadius: "var(--radius-sm)",
-            background: customMode ? "var(--surface-1)" : "transparent",
-            border: customMode ? "1px solid var(--border-mid)" : "1px solid transparent",
-            transition: "all var(--transition-fast)",
-            minHeight: "32px"
-          }}>
+          <label
+            htmlFor="exam-mode-custom"
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: "var(--space-xs)",
+              cursor: "pointer",
+              padding: "var(--pad-1) var(--pad-2)",
+              borderRadius: "var(--radius-sm)",
+              background: customMode ? "var(--surface-1)" : "transparent",
+              border: customMode ? "1px solid var(--border-mid)" : "1px solid transparent",
+              transition: "all var(--transition-fast)",
+              minHeight: "32px",
+            }}
+          >
             <input
+              id="exam-mode-custom"
               type="radio"
+              name="exam-format"
               checked={customMode}
               onChange={() => setCustomMode(true)}
               style={{ margin: 0 }}
@@ -138,10 +154,12 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
 
         {!customMode ? (
           <select
+            id="exam-setup-preset"
             value={selectedPresetId}
             onChange={(e) => setSelectedPresetId(e.target.value)}
             className="input"
             style={{ width: "100%" }}
+            aria-label="Timed exam preset"
           >
             <option value="">Choose a preset...</option>
             {state.examPresets.map(preset => (
@@ -157,45 +175,52 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
             gap: "12px" 
           }}>
             <div>
-              <label className="lead" style={{ display: "block", marginBottom: "4px" }}>
+              <label htmlFor="exam-custom-questions" className="lead" style={{ display: "block", marginBottom: "4px" }}>
                 Questions
               </label>
               <input
+                id="exam-custom-questions"
                 type="number"
                 min="1"
                 max={selectedQuiz?.questions.length || 100}
                 value={customQuestions}
-                onChange={(e) => setCustomQuestions(parseInt(e.target.value) || 1)}
+                onChange={(e) => setCustomQuestions(parseInt(e.target.value, 10) || 1)}
                 className="input"
                 style={{ minHeight: "44px" }}
               />
             </div>
             <div>
-              <label className="lead" style={{ display: "block", marginBottom: "4px" }}>
+              <label htmlFor="exam-custom-minutes" className="lead" style={{ display: "block", marginBottom: "4px" }}>
                 Minutes
               </label>
               <input
+                id="exam-custom-minutes"
                 type="number"
                 min="1"
                 max="300"
                 value={customMinutes}
-                onChange={(e) => setCustomMinutes(parseInt(e.target.value) || 1)}
+                onChange={(e) => setCustomMinutes(parseInt(e.target.value, 10) || 1)}
                 className="input"
                 style={{ minHeight: "44px" }}
               />
             </div>
           </div>
         )}
-      </div>
+      </fieldset>
 
       {/* Options */}
-      <div style={{ marginBottom: "24px" }}>
-        <label className="lead" style={{ display: "block", marginBottom: "12px" }}>
+      <fieldset style={{ marginBottom: "24px", border: "none", padding: 0, marginInline: 0 }}>
+        <legend className="lead" style={{ display: "block", marginBottom: "12px", padding: 0 }}>
           Options
-        </label>
+        </legend>
         <div style={{ display: "grid", gap: "var(--space-xs)" }}>
-          {Object.entries(options).map(([key, value]) => (
-            <label key={key} style={{ 
+          {Object.entries(options).map(([key, value]) => {
+            const optId = `exam-opt-${key}`;
+            return (
+            <label
+              key={key}
+              htmlFor={optId}
+              style={{ 
               display: "flex", 
               alignItems: "center", 
               gap: "var(--space-sm)", 
@@ -206,8 +231,10 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
               border: "1px solid var(--border-weak)",
               transition: "all var(--transition-fast)",
               minHeight: "32px"
-            }}>
+            }}
+            >
               <input
+                id={optId}
                 type="checkbox"
                 checked={value}
                 onChange={(e) => setOptions(prev => ({ ...prev, [key]: e.target.checked }))}
@@ -221,9 +248,10 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
                 {key.replace(/([A-Z])/g, ' $1').trim()}
               </span>
             </label>
-          ))}
+            );
+          })}
         </div>
-      </div>
+      </fieldset>
 
       {/* Start Button */}
       <div style={{ 
@@ -233,35 +261,34 @@ export default function ExamSetup({ onStart }: ExamSetupProps) {
         flexDirection: "column"
       }}>
         <button
+          type="button"
           onClick={handleStart}
           disabled={!canStart}
           className="btn primary lg"
+          title={
+            canStart
+              ? "Begin the timed exam with your selected settings"
+              : "Choose a quiz and preset (or valid custom settings) to enable start"
+          }
         >
-          Start Exam
+          Start exam
         </button>
-        <button
-          onClick={() => navigate("/")}
-          className="btn ghost"
-        >
+        <button type="button" onClick={() => navigate("/")} className="btn ghost">
           Cancel
         </button>
       </div>
 
       {!canStart && (
-        <div style={{ 
-          marginTop: "12px", 
-          padding: "8px 12px", 
-          background: "rgba(244, 63, 94, 0.1)", 
-          border: "1px solid rgba(244, 63, 94, 0.3)", 
-          borderRadius: "8px",
-          fontSize: "14px",
-          color: "var(--danger)"
-        }}>
-          {!selectedQuiz ? "Please select a quiz" :
-           selectedQuiz.questions.length === 0 ? "Selected quiz has no questions" :
-           !customMode && !selectedPreset ? "Please select a preset or use custom mode" :
-           customMode && (customQuestions <= 0 || customMinutes <= 0) ? "Please set valid custom values" :
-           "Ready to start"}
+        <div role="status" aria-live="polite" className="exam-setup-status">
+          {!selectedQuiz
+            ? "Select a quiz to continue."
+            : selectedQuiz.questions.length === 0
+              ? "That quiz has no questions yet—add some on Build."
+              : !customMode && !selectedPreset
+                ? "Pick a preset, or switch to Custom and set question and time limits."
+                : customMode && (customQuestions <= 0 || customMinutes <= 0)
+                  ? "Enter a positive number of questions and minutes."
+                  : "Ready when you are."}
         </div>
       )}
     </div>
